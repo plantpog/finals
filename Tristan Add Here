@@ -4,7 +4,7 @@ using namespace std;
 
 int choices(){
     int try_again;
-    cout<<"ENTER: ";
+    std::cout << "[1] Add Patiend" << endl << "[2] Add Entry Case No." << endl << "[3]View All Specific cCase" << endl << "[4] Exit Program" << endl << "ENTER: ";
     string input;
     getline(cin, input);
     
@@ -27,7 +27,8 @@ int choices(){
 
 
     }   if (input == "4") { // Program Close
-
+        cout << endl << "Good Bye, See you again!" << endl;
+        return 0; // Destroy
     }
 
 
@@ -39,9 +40,10 @@ void add_patient(){
 
 }
 
+void 
+
 int main() {
     choices();
 
     return 0;
 }
-
