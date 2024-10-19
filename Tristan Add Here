@@ -2,22 +2,53 @@
 #include<stack>
 using namespace std;
 
+string name,age,condition; // Father
+
+void add_patient(){
+
+    cout<<"Name: ";
+    getline(cin,name);
+    cout<<"Age: ";
+    getline(cin,age);
+    cout<<"Your Condition: ";
+    getline(cin,condition);
+
+    
+
+    //cout<<name<<endl<<age<<endl<<Condition;
+
+    while(name.empty() || age.empty() || Condition.empty()){
+        cout<<"Please Fill the following instruction Name, Age, And Condition\n";
+        
+        cout<<"Name: ";
+        getline(cin,name);
+        cout<<"Age: ";
+        getline(cin,age);
+        cout<<"Your Condition: ";
+        getline(cin,Condition);
+
+    }
+    
+
+}
+
+
 int choices(){
-    int try_again;
-    std::cout << "[1] Add Patiend" << endl << "[2] Add Entry Case No." << endl << "[3]View All Specific cCase" << endl << "[4] Exit Program" << endl << "ENTER: ";
+    cout << "[1] Add Patiend" << endl << "[2] Add Entry Case No." << endl << "[3]View All Specific cCase" << endl << "[4] Exit Program" << endl << "ENTER: ";
     string input;
     getline(cin, input);
     
     while(input!="1" && input!="2" && input!="3" && input!="4"){
         cout << "Invalid\n\n";
         cout << "Choose Between the choices\n";
-        std::cout << "[1] Add Patiend" << endl << "[2] Add Entry Case No." << endl << "[3]View All Specific cCase" << endl << "[4] Exit Program" << endl << "ENTER: ";
+        cout << "[1] Add Patiend" << endl << "[2] Add Entry Case No." << endl << "[3]View All Specific cCase" << endl << "[4] Exit Program" << endl << "ENTER: ";
         
         getline(std::cin,input);
 
     }
     
     if (input == "1") {//Patient
+         add_patient();
 
 
     }   if (input == "2") {//Case No.
@@ -28,19 +59,13 @@ int choices(){
 
     }   if (input == "4") { // Program Close
         cout << endl << "Good Bye, See you again!" << endl;
-        return 0; // Destroy
+        return 0;
     }
 
 
 
     return 0;
 }
-
-void add_patient(){
-
-}
-
-void 
 
 int main() {
     choices();
