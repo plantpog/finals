@@ -1,74 +1,242 @@
+
+
 #include <iostream>
+#include <iomanip> // std::setw and std::setfill
+#include <sstream> // ostringsteam
+#include <ctime> // Time
 #include<stack>
+#include <cstdlib>
+#include <set>
 using namespace std;
 
-string name,age,condition; // Father
+struct Node{
+	string name;
+	string age;
+	string sex;
+    string caseNumber;
 
-void add_patient(){
 
-    cout<<"Name: ";
-    getline(cin,name);
-    cout<<"Age: ";
-    getline(cin,age);
-    cout<<"Your Condition: ";
-    getline(cin,condition);
+	Node* next;
+    //Node(const string& num) : caseNumber(num), next(nullptr) {}
+};
+Node* head=nullptr;// Global variable 
 
-    
+set<int> usedNumbers; //  Track Unique case numbers
+int startNumber = 0; // Case Number
+int currentNumber = startNumber;
 
-    //cout<<name<<endl<<age<<endl<<Condition;
 
-    while(name.empty() || age.empty() || Condition.empty()){
-        cout<<"Please Fill the following instruction Name, Age, And Condition\n";
-        
-        cout<<"Name: ";
-        getline(cin,name);
-        cout<<"Age: ";
-        getline(cin,age);
-        cout<<"Your Condition: ";
-        getline(cin,Condition);
+int start(){
+cout<<"*********************************************************"<<endl;
+cout<<" _    _   _____   _       _____   _____  ___  ___  _____ "<<endl;
+cout<<"| |  | | |  ___| | |     /  __ \\ |  _  | |  \\/  | |  ___|"<<endl;
+cout<<"| |  | | | |__   | |     | /  \\/ | | | | | .  . | | |__  "<<endl;
+cout<<"| |/\\| | |  __|  | |     | |     | | | | | |\\/| | |  __| "<<endl;
+cout<<"\\  /\\  / | |___  | |____ | \\__/\\ \\ \\_/ / | |  | | | |___ "<<endl;
+cout<<" \\/  \\/  \\____/  \\_____/  \\____/  \\___/  \\_|  |_/ \\____/ "<<endl;
+cout<<" "<<endl;
+cout<<"*********************************************************"<<endl;
+    return 0;
+}
 
+string Generate_case_number(){
+    int decrement = rand() % 10 + 1; //  Random Decrement 1 || 10
+    currentNumber += decrement;
+
+    while (usedNumbers.count(currentNumber) != 0 || currentNumber <= 1000){
+        decrement = rand() % 10 + 1;
+        currentNumber += decrement;
     }
-    
 
+    usedNumbers.insert(currentNumber); // Mark it as used
+
+    //Convert to a String with leading zeros
+    ostringstream oss;
+    oss << setw(4) << setfill ('0') << currentNumber;
+    return oss.str();
 }
 
 
-int choices(){
-    cout << "[1] Add Patiend" << endl << "[2] Add Entry Case No." << endl << "[3]View All Specific cCase" << endl << "[4] Exit Program" << endl << "ENTER: ";
+void choices(){
+    int try_again;
+
+    cout<<"[1] Add Patiend"<<endl<<"[2] Add Entry Case No."<<endl<<"[3] View All Specific Case"<<endl<<"[4] Exit Program"<<endl<<endl<<"ENTER: ";
     string input;
-    getline(cin, input);
+    getline(cin,input);
+        	if(input=="1"){//Patient
+    		void add_patient();
+    		add_patient();
+    		
+    	}if (input == "2"){//Case No.
+    		void CaseNo();
+    		CaseNo();
+    	}   if (input == "3") {//Specific Case Viewer
+			void SCV();
+			SCV();
+    	}   if (input == "4") { // Program Close
+
+    	}
     
-    while(input!="1" && input!="2" && input!="3" && input!="4"){
-        cout << "Invalid\n\n";
-        cout << "Choose Between the choices\n";
-        cout << "[1] Add Patiend" << endl << "[2] Add Entry Case No." << endl << "[3]View All Specific cCase" << endl << "[4] Exit Program" << endl << "ENTER: ";
-        
+    while(input!="1"&&input!="2"&&input!="3"&&input!="4"){
+        cout<<"Invalid\n\n";
+        cout<<"Choose Between the choices\n";
+        cout<<"[1] Add Patiend"<<endl<<"[2] Add Entry Case No."<<endl<<"[3] View All Specific Case"<<endl<<"[4] Exit Program"<<endl<<endl<<"ENTER: ";
         getline(std::cin,input);
 
     }
     
-    if (input == "1") {//Patient
-         add_patient();
+}
 
 
-    }   if (input == "2") {//Case No.
+void add_patient(){
+	string name,age,sex; //Variable
+	
 
+	cout<<endl<<"Please Enter Name: ";
+	getline(cin,name);
+	cout<<"Please Enter Age: ";
+	getline(cin,age);
+	cout<<"Please Enter Sex: ";
+	getline(cin,sex);
+	
+	string caseNumber =Generate_case_number();
 
-    }   if (input == "3") {//Specific Case Viewer
-
-
-    }   if (input == "4") { // Program Close
-        cout << endl << "Good Bye, See you again!" << endl;
-        return 0;
+	//NODE link list Patient
+	Node* newnode=new Node();
+	newnode->name=name;
+	newnode->age=age;
+	newnode->sex=sex;
+    newnode->caseNumber=caseNumber;
+	newnode->next=nullptr;
+	
+	if(head==nullptr){
+		head=newnode; // If there's no Element on NODE it will create a new Element
+	}else{
+		Node* temp=head;
+		while(temp->next!=nullptr){
+			temp=temp->next;
+		}
+		temp->next=newnode;//meron na, bago sya, dagdag to
+	}
+	
+    cout<<endl<<endl<<"Patient Status:"<<endl<<"Name: "<<name<<endl<<"Age: "<<age<<endl<<"Sex: "<<sex<<endl<<"Case Number: "<<caseNumber;
+	
+	//After matapos... back to menu or shutdown!
+	cout<<endl<<endl<<endl<<"[A] Back to Menu"<<endl<<"[B] Add Another Patient"<<endl<<endl<<"ENTER: ";
+	string chestnuts1;
+    getline(cin,chestnuts1);
+    while(chestnuts1!="A"&&chestnuts1!="a"&&chestnuts1!="B"&&chestnuts1!="b"){
+        cout<<"\nTry Again!";
+        cout<<endl<<endl<<endl<<"[A] Back"<<endl<<"[B] Exit Program"<<endl<<endl<<"ENTER: ";
+        getline(cin,chestnuts1);
     }
+    if(chestnuts1=="A"||chestnuts1=="a"){//back to menu #choices
+        cout<<endl<<endl;
+    	void choices();
+		choices();
+    }else if(chestnuts1=="B"||chestnuts1=="b"){//isa pa
+        void Continue();
+        Continue();
+	}
+	
+}
+
+void Continue(){
+    cout<<"Continue???\n[1]Yes or [2]No\n";//yes or no
+    string chestnuts2;
+    getline(cin,chestnuts2);
+     while(chestnuts2!="1"&&chestnuts2!="2"){
+        cout<<"\nTry Again!";
+        cout<<endl<<"Continue???\n[1]Yes or [2]No\n";
+        getline(cin,chestnuts2);
+    }
+    if(chestnuts2=="1"||chestnuts2=="1"){//dagdag pa
+        cout<<endl<<endl;
+   		void add_patient();
+    	add_patient();
+    }else{
+        if(chestnuts2=="2"){//cancel na back to menu na pero nasave ang progress
+            cout<<"Proceeding will only save the curent progress and return to Menu."<<endl;
+            cout<<"Press [1]OK to Continue"<<endl;
+            string cons;
+            getline(cin,cons);
+            while(cons!="1"){
+                cout<<endl<<"Try Again!"<<endl;
+                cout<<"Press [1]OK to Continue"<<endl;
+                string cons;
+                getline(cin,cons);
+            }
+            if(cons=="1"){
+                void choices();
+        		choices();
+            }
+	    }
+    }
+}//endulo ni Continue
 
 
+void CaseNo(){
+	
+	
+	
+	
+	
+	cout<<endl<<endl<<endl<<"[A] Back"<<endl<<endl<<"ENTER: ";
+	string chestnuts;
+    getline(cin,chestnuts);
+        if(chestnuts=="A"||chestnuts=="a"){//back to menu #choices
+        	cout<<endl<<endl;
+    		void choices();
+    		choices();
+    	}else{
+            return; // Change this Nested
+        }
+	
+}
 
-    return 0;
+void SCV(){// Case View
+	//cout<<endl<<"hotdog";
+	
+	//pazpakita currently laman ng nodes if meron or wala
+	if(head==nullptr){
+		cout<<"No Patient(s) Found."<<endl;
+	}else{
+		Node* temp=head;
+		int pasyentess=1;
+		while(temp!=nullptr){
+			cout<<endl<<"Patient "<<pasyentess<<":"<<endl;
+			cout<<"Name: "<<temp->name<<endl;
+			cout<<"Age: "<<temp->age<<endl;
+			cout<<"Sex: "<<temp->sex<<endl<<"Case Number: "<<temp->caseNumber<<endl;
+			temp=temp->next;
+			pasyentess++;
+
+		}
+	}
+	
+	cout<<endl<<endl<<"[A] Back"<<endl<<"[B] Exit Program"<<endl<<endl<<"ENTER: ";
+	string chestnuts;
+    getline(cin,chestnuts);
+        if(chestnuts=="A"||chestnuts=="a"){//back to menu #choices
+        	cout<<endl<<endl;
+    		void choices();
+    		choices();
+    	}else{
+            // If the user press B they will exit the program
+            return;
+        }
+	
 }
 
 int main() {
-    choices();
+    srand(static_cast<unsigned int>(time(0))); // Random Number Gen-
 
+	start();
+    choices();
+    //add_patient();
+    //CaseNo();
+    //SCV();
+    
+    
     return 0;
 }
