@@ -1,1 +1,193 @@
+#include <iostream>
+#include <stack>
+#include <queue>
+#include <cstdlib>
+#include <conio.h>
+#include <string>
+#include <unistd.h>
+using namespace std;
 
+struct PatientInfo {
+    string name;
+    int room;
+    string doctor;
+    PatientInfo *next;
+    PatientInfo *prev;
+    PatientInfo(string n, int r, string d) : name(n), room(r), doctor(d), next(nullptr), prev(nullptr) {}
+};
+
+stack<int> availableRooms;
+queue<string> availableDoctors;
+PatientInfo* head = nullptr;
+PatientInfo* tail = nullptr;
+int totalRooms;
+
+void addPatient(string name);
+void dischargePatient(string name);
+void viewAllPatients();
+void initializeRoomsAndDoctors();
+void initializeSurgeryWard();
+
+int start() {
+    cout << "----------------------------------Welcome to Hospital Management System------------------------------------------" << endl;
+    sleep(2);
+    system("cls");
+    
+    cout << "        ____________" << endl;
+    cout << "  ______|            |______" << endl;
+    cout << " |___   |  +   +     |     __|" << endl;           //hospital car
+    cout << "   o-o\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"o-o" << endl;
+    sleep(3);
+    system("cls");
+    
+    cout << "  ________  " << endl;
+    cout << " |   ++   | " << endl;  
+    cout << " |   ++   | " << endl;
+    cout << " |___||___| " << endl;      // hospital ng group 1
+    cout << " |        | " << endl;
+    cout << " |  HOSP  | " << endl;
+    cout << " |________| " << endl;
+    sleep(3);
+    system("cls");
+
+    cout << "Enter total number of rooms in the hospital: ";
+    cin >> totalRooms;
+    cin.ignore();
+    
+
+    initializeRoomsAndDoctors();
+    initializeSurgeryWard();
+    system("cls");
+
+    return 0;
+}
+
+void initializeRoomsAndDoctors() {
+    // Fill room stack with room numbers
+    for (int i = totalRooms; i > 0; --i) {
+        availableRooms.push(i);
+    }
+    // Add sample doctors to queue
+    availableDoctors.push("Dr. Smith");
+    availableDoctors.push("Dr. Johnson");
+    availableDoctors.push("Dr. Williams");
+    availableDoctors.push("Dr. Brown");
+    availableDoctors.push("Dr. Taylor");
+}
+
+void initializeSurgeryWard() {
+    int specialRooms = totalRooms * 0.1;
+    for (int i = 0; i < specialRooms; ++i) {
+        int room = availableRooms.top();
+        availableRooms.pop();
+        cout << "Room " << room << " assigned to Surgery/X-Ray/CT-Scan.\n";
+    }
+    sleep(2);
+    cout << endl;
+}
+
+void addPatient(string name) {
+    if (availableRooms.empty() || availableDoctors.empty()) {
+        cout << "Error: No rooms or doctors available." << endl;
+        return;
+    }
+
+    int room = availableRooms.top();
+    availableRooms.pop();
+    string doctor = availableDoctors.front();
+    availableDoctors.pop();
+
+    PatientInfo* newPatient = new PatientInfo(name, room, doctor);
+    if (!head) {
+        head = tail = newPatient;
+    } else {
+        tail->next = newPatient;
+        newPatient->prev = tail;
+        tail = newPatient;
+    }
+    cout << "Patient " << name << " assigned to Room " << room << " under " << doctor << "." << endl;
+}
+
+void dischargePatient(string name) {
+    PatientInfo* temp = head;
+    while (temp && temp->name != name) {
+        temp = temp->next;
+    }
+    if (temp) {
+        if (temp->prev) temp->prev->next = temp->next;
+        if (temp->next) temp->next->prev = temp->prev;
+        if (temp == head) head = head->next;
+        if (temp == tail) tail = tail->prev;
+        
+        availableRooms.push(temp->room);
+        availableDoctors.push(temp->doctor);
+        
+        delete temp;
+        cout << name << " has been discharged." << endl;
+    } else {
+        cout << "Patient not found." << endl;
+    }
+}
+
+void viewAllPatients() {
+    PatientInfo* temp = head;
+    while (temp) {
+        cout << "Patient: " << temp->name << ", Room: " << temp->room << ", Doctor: " << temp->doctor << endl;
+        temp = temp->next;
+    }
+}
+
+int Patient() {
+    while (true) {
+        cout << "[1] Add Patient" << endl << "[2] Discharge Patient" << endl << "[3] View all Patients" << endl << "[4] Back to Main" << endl << "ENTER: ";
+        string input;
+        getline(cin, input);
+
+        if (input == "1") {
+            system("cls");
+            string name;
+            cout << "Enter patient name: ";
+            getline(cin, name);
+            addPatient(name);
+        } else if (input == "2") {
+            system("cls");
+            string name;
+            cout << "Enter patient name to discharge: ";
+            getline(cin, name);
+            dischargePatient(name);
+        } else if (input == "3") {
+            system("cls");
+            viewAllPatients();
+        } else if (input == "4") {
+            system("cls");
+            return 0;
+        } else {
+            cout << "Invalid\n\n";
+        }
+    }
+}
+
+int choices() {
+    while (true) {
+        cout << "[1] Patient" << endl << "[2] Exit Program" << endl << "ENTER: ";
+        string input;
+        getline(cin, input);
+
+        if (input == "1") {
+            system("cls");
+            Patient();
+        } else if (input == "2") {
+            cout << endl << "Good Bye, See you again!" << endl;
+            exit(0);
+        } else {
+            cout << "Invalid\n\n";
+        }
+    }
+}
+
+int main() {
+    start();
+    choices();
+
+    return 0;
+}
