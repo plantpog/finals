@@ -1,67 +1,607 @@
 #include <iostream>
-#include<stack>
+#include <stack>
+#include <queue>
 #include <cstdlib>
-#include <conio.h> 
-using namespace std;
-//crawford2
+#include <string>
+#include <chrono>
+#include <thread>
+#include <vector>
+#include <algorithm>
 
-int start(){
-//Welcome Start
-cout<<"   __    __    ___  _         __   ___   ___ ___    ___ "<<endl;
-cout<<"  |  |__|  |  /  _]| |       /  ] /   \\ |   |   |  /  _]"<<endl;
-cout<<"  |  |  |  | /  [_ | |      /  / |     || _   _ | /  [_ "<<endl;
-cout<<"  |  |  |  ||    _]| |___  /  /  |  O  ||  \\_/  ||    _]"<<endl;
-cout<<"  |  `  '  ||   [_ |     |/   \\_ |     ||   |   ||   [_ "<<endl;
-cout<<"   \\      / |     ||     |\\     ||     ||   |   ||     |"<<endl;
-cout<<"    \\_/\\_/  |_____||_____| \\____| \\___/ |___|___||_____|"<<endl;                                                     
-int iii;
-do{
-	iii++;
-	sleep(1);
-}while(iii<1);
-system("cls");
-//Welcome End
-//Loading 
-int i;
-cout<<"   _       ___    ____  ___    ____  ____    ____ "<<endl;
-cout<<"  | |     /   \\  /    ||   \\  |    ||    \\  /    |"<<endl;
-cout<<"  | |    |     ||  o  ||    \\  |  | |  _  ||   __|"<<endl;
-cout<<"  | |___ |  O  ||     ||  D  | |  | |  |  ||  |  |"<<endl;
-cout<<"  |     ||     ||  _  ||     | |  | |  |  ||  |_ |"<<endl;
-cout<<"  |     ||     ||  |  ||     | |  | |  |  ||     |"<<endl;
-cout<<"  |_____| \\___/ |__|__||_____||____||__|__||___,_|";
-                                                  
-do{
-cout<<"*";
-    i++;
-	sleep(1);
-}while(i<5);
-system("cls");
-//Loading End
-//Thanks Start
-cout<<"   ______  __ __   ____  ____   __  _  _____   _____   ___   ____     __    __   ____  ____  ______  ____  ____    ____ "<<endl;
-cout<<"  |      ||  |  | /    ||    \\ |  |/ ]/ ___/  |     | /   \\ |    \\   |  |__|  | /    ||    ||      ||    ||    \\  /    |"<<endl;
-cout<<"  |      ||  |  ||  o  ||  _  ||  ' /(   \\_   |   __||     ||  D  )  |  |  |  ||  o  | |  | |      | |  | |  _  ||   __|"<<endl;
-cout<<"  |_|  |_||  _  ||     ||  |  ||    \\ \\__  |  |  |_  |  O  ||    /   |  |  |  ||     | |  | |_|  |_| |  | |  |  ||  |  |"<<endl;
-cout<<"    |  |  |  |  ||  _  ||  |  ||     \\/  \\ |  |   _] |     ||    \\   |  `  '  ||  _  | |  |   |  |   |  | |  |  ||  |_ |"<<endl;
-cout<<"    |  |  |  |  ||  |  ||  |  ||  .  |\\    |  |  |   |     ||  .  \\   \\      / |  |  | |  |   |  |   |  | |  |  ||     |"<<endl;
-cout<<"    |__|  |__|__||__|__||__|__||__|\\_| \\___|  |__|    \\___/ |__|\\_|    \\_/\\_/  |__|__||____|  |__|  |____||__|__||___,_|"<<endl;                                                                                                                      
-int ii;
-do{
-	ii++;
-	sleep(1);
-}while(i<1);
-system("cls");
-//Thanks End
-return 0;
+using namespace std;
+
+const int MAX_DOCTORS = 100;
+const int MAX_QUARANTINE = 100;
+const double MAX_SPECIAL_ROOMS = 0.1;
+
+int totalRooms;
+queue<string> doctorQueue;
+int doctorCount = 0;
+int totalDoctorsEver = 0;
+int freeDoctors = 0;
+
+struct PatientInfo {
+    string name;
+    int room;
+    string doctor;
+    PatientInfo* next;
+    PatientInfo* prev;
+    PatientInfo(string n, int r, string d) : name(n), room(r), doctor(d), next(nullptr), prev(nullptr) {}
+};
+
+stack<int> availableRooms;
+PatientInfo* head = nullptr;
+PatientInfo* tail = nullptr;
+string doctorHistory[MAX_DOCTORS];
+int doctorHistoryCount = 0;
+int surgeryRoomCount = 0;
+int xrayRoomCount = 0;
+string** surgeryRooms;
+string* xrayRooms;
+
+class DoctorHistoryQueue {
+private:
+    string queue[MAX_DOCTORS];
+    int front;
+    int rear;
+    int count;
+
+public:
+    DoctorHistoryQueue() : front(0), rear(-1), count(0) {}
+
+    bool isFull() {
+        return count == MAX_DOCTORS;
+    }
+
+    bool isEmpty() {
+        return count == 0;
+    }
+
+    void enqueue(const string& doctorName) {
+        if (isFull()) {
+            cout << "Error: Doctor history queue is full." << endl;
+            return;
+        }
+        rear = (rear + 1) % MAX_DOCTORS;
+        queue[rear] = doctorName;
+        count++;
+    }
+
+    void dequeue() {
+        if (isEmpty()) {
+            cout << "Error: Doctor history queue is empty." << endl;
+            return;
+        }
+        front = (front + 1) % MAX_DOCTORS;
+        count--;
+    }
+
+    void display() {
+        if (isEmpty()) {
+            cout << "No doctors in history." << endl;
+            return;
+        }
+        cout << "Doctor History:" << endl;
+        for (int i = 0; i < count; i++) {
+            cout << queue[(front + i) % MAX_DOCTORS] << endl;
+        }
+    }
+};
+
+DoctorHistoryQueue doctorHistoryQueue;
+
+struct QuarantineHistory {
+    string stack[MAX_QUARANTINE];
+    int top;
+
+    QuarantineHistory() : top(-1) {}
+
+    bool isFull() {
+        return top == MAX_QUARANTINE - 1;
+    }
+
+    bool isEmpty() {
+        return top == -1;
+    }
+
+    void push(const string& name) {
+        if (isFull()) {
+            cout << "Error: Quarantine history stack is full." << endl;
+            return;
+        }
+        stack[++top] = name;
+    }
+
+    void pop() {
+        if (isEmpty()) {
+            cout << "Error: Quarantine history stack is empty." << endl;
+            return;
+        }
+        top--;
+    }
+
+    void display() {
+        if (isEmpty()) {
+            cout << "No quarantined patients." << endl;
+            return;
+        }
+        cout << "Quarantine History:" << endl;
+        for (int i = 0; i <= top; i++) {
+            cout << stack[i] << endl;
+        }
+    }
+};
+
+QuarantineHistory quarantineHistory;
+stack<string> quarantineStack;
+
+void addPatient(string name);
+void dischargePatient(string name);
+void viewAllPatients();
+void initializeRoomsAndDoctors();
+void addDoctor(string name);
+void fireDoctor(string name);
+void displayDoctorCount();
+void initializeSpecialRooms();
+void assignSpecialRoom(string type, PatientInfo* patient);
+void removeFromSpecialRoom(string name, string type);
+void displaySpecialRoomAvailability();
+void start();
+int choices();
+void patientManagement();
+void doctorManagement();
+void quarantinePatient(string name);
+void restoreFromQuarantine();
+void viewHistory();
+void pauseForASecond();
+void sortPatients();
+void sortDoctors();
+void viewQuarantinePatients();
+void assignPatientToSpecialRoom(string name);
+void removePatientFromSpecialRoom(string name);
+int checkifint(int num);
+ 
+int checkifint(){
+    int value;
+    while (true) {
+    cout<< " ";
+    cin >> value;
+    if(cin.fail()){
+        cout<<"Failed Enter Number"<<endl;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    } else{
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return value;
+    }
+    }
+}
+ 
+void start() {
+    cout << "----------------------------------Welcome to Hospital Management System------------------------------------------" << endl;
+    cout << "Enter total number of rooms in the hospital (minimum 40): ";
+    cin >> totalRooms;
+    while (totalRooms < 40) {
+        cout << "Error: You must enter at least 40 rooms." << endl;
+        cout << "Enter total number of rooms in the hospital (minimum 40): ";
+        totalRooms = checkifint();
+    }
+
+    initializeRoomsAndDoctors();
+    initializeSpecialRooms();
+    system("cls");
 }
 
+void initializeRoomsAndDoctors() {
+    for (int i = totalRooms; i > 0; --i) {
+        availableRooms.push(i);
+    }
+}
 
+void initializeSpecialRooms() {
+    int specialRooms = static_cast<int>(totalRooms * MAX_SPECIAL_ROOMS);
+    surgeryRoomCount = specialRooms / 2;
+    xrayRoomCount = specialRooms - surgeryRoomCount;
 
+    surgeryRooms = new string*[surgeryRoomCount];
+    for (int i = 0; i < surgeryRoomCount; ++i) {
+        surgeryRooms[i] = new string[2];
+        surgeryRooms[i][0] = "Available";
+        surgeryRooms[i][1] = "No Doctor Assigned";
+    }
+    xrayRooms = new string[xrayRoomCount];
+    for (int i = 0; i < xrayRoomCount; ++i) {
+        xrayRooms[i] = "Available";
+    }
+}
+
+void addDoctor(string name) {
+    if (doctorCount >= totalRooms) {
+        cout << "Error: Maximum number of doctors reached. Cannot add more doctors." << endl;
+        pauseForASecond();
+        return;
+    }
+
+    doctorQueue.push(name);
+    doctorHistoryQueue.enqueue(name);
+    doctorHistory[doctorHistoryCount++] = name;
+    doctorCount++;
+    freeDoctors++;
+    cout << "Doctor " << name << " added. Free doctors: " << freeDoctors << endl;
+    pauseForASecond();
+}
+
+void fireDoctor(string name) {
+    if (doctorQueue.empty()) {
+        cout << "Error: No doctors available to delete." << endl;
+        pauseForASecond();
+        return;
+    }
+
+    queue<string> tempQueue;
+    bool found = false;
+
+    while (!doctorQueue.empty()) {
+        string doctor = doctorQueue.front();
+        doctorQueue.pop();
+
+        if (doctor == name) {
+            found = true;
+            cout << "Doctor " << name << " has been removed from the system." << endl;
+            freeDoctors--;
+        } else {
+            tempQueue.push(doctor);
+        }
+    }
+
+    doctorQueue = tempQueue;
+    if (!found) {
+        cout << "Error: Doctor " << name << " not found." << endl;
+    }
+    doctorCount = doctorQueue.size();
+    pauseForASecond();
+}
+
+void addPatient(string name) {
+    if (availableRooms.empty() || doctorQueue.empty()) {
+        cout << "Error: No rooms or doctors available." << endl;
+        pauseForASecond();
+        return;
+    }
+
+    int room = availableRooms.top();
+    availableRooms.pop();
+    string doctor = doctorQueue.front();
+
+    PatientInfo* newPatient = new PatientInfo(name, room, doctor);
+    if (!head) {
+        head = tail = newPatient;
+    } else {
+        tail->next = newPatient;
+        newPatient->prev = tail;
+        tail = newPatient;
+    }
+    cout << "Patient " << name << " assigned to Room " << room << " under " << doctor << "." << endl;
+    freeDoctors--;
+    doctorQueue.pop();
+
+    pauseForASecond();
+}
+
+void assignPatientToSpecialRoom(string name) {
+    PatientInfo* temp = head;
+    while (temp && temp->name != name) {
+        temp = temp->next;
+    }
+
+    if (!temp) {
+        cout << "Error: Patient " << name << " not found." << endl;
+        pauseForASecond();
+        return;
+    }
+
+    string specialType;
+    cout << "Enter type of special room (Surgery/X-ray): ";
+    cin >> specialType;
+    assignSpecialRoom(specialType, temp);
+}
+
+void removePatientFromSpecialRoom(string name) {
+    cout << "Enter the type of special room (Surgery/X-ray) to remove patient from: ";
+    string type;
+    cin >> type;
+
+    if (type == "Surgery") {
+        for (int i = 0; i < surgeryRoomCount; ++i) {
+            if (surgeryRooms[i][0] == name) {
+                surgeryRooms[i][0] = "Available";
+                surgeryRooms[i][1] = "No Doctor Assigned";
+                cout << "Patient " << name << " has been removed from Surgery Room " << i + 1 << "." << endl;
+                return;
+            }
+        }
+        cout << "Error: Patient " << name << " not found in Surgery rooms." << endl;
+    } else if (type == "X-ray") {
+        for (int i = 0; i < xrayRoomCount; ++i) {
+            if (xrayRooms[i] == name) {
+                xrayRooms[i] = "Available";
+                cout << "Patient " << name << " has been removed from X-ray Room " << i + 1 << "." << endl;
+                return;
+            }
+        }
+        cout << "Error: Patient " << name << " not found in X-ray rooms." << endl;
+    } else {
+        cout << "Error: Invalid room type." << endl;
+    }
+    pauseForASecond();
+}
+
+void assignSpecialRoom(string type, PatientInfo* patient) {
+    if (type == "Surgery") {
+        for (int i = 0; i < surgeryRoomCount; ++i) {
+            if (surgeryRooms[i][0] == "Available") {
+                surgeryRooms[i][0] = patient->name;
+                surgeryRooms[i][1] = patient->doctor;
+                cout << "Patient " << patient->name << " assigned to Surgery Room " << i + 1 << "." << endl;
+                return;
+            }
+        }
+        cout << "Error: No available Surgery rooms." << endl;
+    } else if (type == "X-ray") {
+        for (int i = 0; i < xrayRoomCount; ++i) {
+            if (xrayRooms[i] == "Available") {
+                xrayRooms[i] = patient->name;
+                cout << "Patient " << patient->name << " assigned to X-ray Room " << i + 1 << "." << endl;
+                return;
+            }
+        }
+        cout << "Error: No available X-ray rooms." << endl;
+    } else {
+        cout << "Error: Invalid room type." << endl;
+    }
+    pauseForASecond();
+}
+
+void dischargePatient(string name) {
+    PatientInfo* temp = head;
+
+    while (temp && temp->name != name) {
+        temp = temp->next;
+    }
+
+    if (!temp) {
+        cout << "Error: Patient " << name << " not found." << endl;
+        pauseForASecond();
+        return;
+    }
+
+    if (temp->prev) {
+        temp->prev->next = temp->next;
+    } else {
+        head = temp->next; // Update head if needed
+    }
+
+    if (temp->next) {
+        temp->next->prev = temp->prev;
+    } else {
+        tail = temp->prev; // Update tail if needed
+    }
+
+    availableRooms.push(temp->room);
+    freeDoctors++;
+    cout << "Patient " << name << " discharged from Room " << temp->room << "." << endl;
+    delete temp;
+    pauseForASecond();
+}
+
+void viewAllPatients() {
+    PatientInfo* temp = head;
+    if (!temp) {
+        cout << "No patients currently admitted." << endl;
+        pauseForASecond();
+        return;
+    }
+    cout << "Current Patients:" << endl;
+    while (temp) {
+        cout << "Name: " << temp->name << ", Room: " << temp->room << ", Doctor: " << temp->doctor << endl;
+        temp = temp->next;
+    }
+    pauseForASecond();
+}
+
+void viewQuarantinePatients() {
+    if (quarantineStack.empty()) {
+        cout << "No patients in quarantine." << endl;
+        pauseForASecond();
+        return;
+    }
+    cout << "Quarantine Patients:" << endl;
+    stack<string> tempStack = quarantineStack;
+    while (!tempStack.empty()) {
+        cout << tempStack.top() << endl;
+        tempStack.pop();
+    }
+    pauseForASecond();
+}
+
+void quarantinePatient(string name) {
+    if (availableRooms.empty()) {
+        cout << "Error: No available rooms to quarantine the patient." << endl;
+        pauseForASecond();
+        return;
+    }
+    quarantineStack.push(name);
+    cout << "Patient " << name << " has been quarantined." << endl;
+    pauseForASecond();
+}
+
+void restoreFromQuarantine() {
+    if (quarantineStack.empty()) {
+        cout << "Error: No patients in quarantine to restore." << endl;
+        pauseForASecond();
+        return;
+    }
+    string name = quarantineStack.top();
+    quarantineStack.pop();
+    cout << "Patient " << name << " has been restored from quarantine." << endl;
+    pauseForASecond();
+}
+
+void pauseForASecond() {
+    this_thread::sleep_for(chrono::seconds(1));
+}
+
+int choices() {
+    int choice;
+    cout << "----------------------------------Menu------------------------------------------" << endl;
+    cout << "1. Patient Management" << endl;
+    cout << "2. Doctor Management" << endl;
+    cout << "3. View Quarantine Patients" << endl;
+    cout << "4. View History" << endl;
+    cout << "5. Exit" << endl;
+    cout << "Enter your choice: ";
+    choice = checkifint();
+    return choice;
+}
+
+void patientManagement() {
+    int choice;
+    do {
+        cout << "------------------------------Patient Management------------------------------" << endl;
+        cout << "1. Add Patient" << endl;
+        cout << "2. Discharge Patient" << endl;
+        cout << "3. View All Patients" << endl;
+        cout << "4. Quarantine Patient" << endl;
+        cout << "5. Restore from Quarantine" << endl;
+        cout << "6. Assign Patient to Special Room" << endl;
+        cout << "7. Remove Patient from Special Room" << endl;
+        cout << "0. Back to Main Menu" << endl;
+        cout << "Enter your choice: ";
+        choice = checkifint();
+        switch (choice) {
+            case 1: {
+                string name;
+                cout << "Enter patient name: ";
+                cin >> name;
+                addPatient(name);
+                break;
+            }
+            case 2: {
+                string name;
+                cout << "Enter patient name: ";
+                cin >> name;
+                dischargePatient(name);
+                break;
+            }
+            case 3:
+                viewAllPatients();
+                break;
+            case 4: {
+                string name;
+                cout << "Enter patient name to quarantine: ";
+                cin >> name;
+                quarantinePatient(name);
+                break;
+            }
+            case 5:
+                restoreFromQuarantine();
+                break;
+            case 6: {
+                string name;
+                cout << "Enter patient name to assign to special room: ";
+                cin >> name;
+                assignPatientToSpecialRoom(name);
+                break;
+            }
+            case 7: {
+                string name;
+                cout << "Enter patient name to remove from special room: ";
+                cin >> name;
+                removePatientFromSpecialRoom(name);
+                break;
+            }
+            case 0:
+                break;
+            default:
+                cout << "Invalid choice, please try again." << endl;
+        }
+    } while (choice != 0);
+}
+
+void doctorManagement() {
+    int choice;
+    do {
+        cout << "------------------------------Doctor Management------------------------------" << endl;
+        cout << "1. Add Doctor" << endl;
+        cout << "2. Fire Doctor" << endl;
+        cout << "3. Display Doctor Count" << endl;
+        cout << "0. Back to Main Menu" << endl;
+        cout << "Enter your choice: ";
+        choice = checkifint();
+
+        switch (choice) {
+            case 1: {
+                string name;
+                cout << "Enter doctor name: ";
+                cin >> name;
+                addDoctor(name);
+                break;
+            }
+            case 2: {
+                string name;
+                cout << "Enter doctor name to fire: ";
+                cin >> name;
+                fireDoctor(name);
+                break;
+            }
+            case 3:
+                displayDoctorCount();
+                break;
+            case 0:
+                break;
+            default:
+                cout << "Invalid choice, please try again." << endl;
+        }
+    } while (choice != 0);
+}
+
+void displayDoctorCount() {
+    cout << "Total doctors currently: " << doctorCount << endl;
+    cout << "Free doctors: " << freeDoctors << endl;
+    pauseForASecond();
+}
+
+void viewHistory() {
+    doctorHistoryQueue.display();
+    quarantineHistory.display();
+    pauseForASecond();
+}
 
 int main() {
     start();
-    
+    int choice;
+    do {
+        choice = choices();
+        switch (choice) {
+            case 1:
+                patientManagement();
+                break;
+            case 2:
+                doctorManagement();
+                break;
+            case 3:
+                viewQuarantinePatients();
+                break;
+            case 4:
+                viewHistory();
+                break;
+            case 5:
+                cout << "Exiting the program. Goodbye!" << endl;
+                break;
+            default:
+                cout << "Invalid choice, please try again." << endl;
+        }
+    } while (choice != 5);
 
     return 0;
 }
